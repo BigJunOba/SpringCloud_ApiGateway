@@ -37,7 +37,7 @@ public class addResponseHeaderFilter extends ZuulFilter {
     }
 
     @Override
-    public Object run() throws ZuulException {
+    public Object run(){
         RequestContext requestContext = RequestContext.getCurrentContext();
         HttpServletResponse response = requestContext.getResponse();
         response.setHeader("X-Foo", UUID.randomUUID().toString());

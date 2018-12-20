@@ -2,7 +2,6 @@ package com.springcloud.sellerbuyer.apiGateway.filter;
 
 import com.google.common.util.concurrent.RateLimiter;
 import com.netflix.zuul.ZuulFilter;
-import com.netflix.zuul.exception.ZuulException;
 import com.springcloud.sellerbuyer.apiGateway.exception.RateLimitException;
 import org.springframework.stereotype.Component;
 
@@ -36,7 +35,7 @@ public class RateLimiFilter extends ZuulFilter {
     }
 
     @Override
-    public Object run() throws ZuulException {
+    public Object run(){
         if (!RATE_LIMITER.tryAcquire()) {   // 如果没有拿到令牌
             throw new RateLimitException();
         }

@@ -2,11 +2,12 @@ package com.springcloud.sellerbuyer.apiGateway.filter;
 
 import com.netflix.zuul.ZuulFilter;
 import com.netflix.zuul.context.RequestContext;
-import com.netflix.zuul.exception.ZuulException;
+import com.springcloud.sellerbuyer.apiGateway.Utils.CookieUtil;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 
 import static org.springframework.cloud.netflix.zuul.filters.support.FilterConstants.PRE_DECORATION_FILTER_ORDER;
@@ -14,12 +15,12 @@ import static org.springframework.cloud.netflix.zuul.filters.support.FilterConst
 
 /**
  * @program: api-gateway
- * @description: token校验
+ * @description: 权限校验(买家)
  * @author: JunOba
  * @create: 2018-12-19 20:50
  */
 @Component
-public class TokenFilter extends ZuulFilter {
+public class AuthBuyerFilter extends ZuulFilter {
 
     @Override
     public String filterType() {
@@ -33,19 +34,25 @@ public class TokenFilter extends ZuulFilter {
 
     @Override
     public boolean shouldFilter() {
-        return true;
+        RequestContext requestContext = RequestContext.getCurrentContext();
+        HttpServletRequest request = requestContext.getRequest();
+        if ("/order/order/create".equals(request.getRequestURI())) {
+            return true;
+        }
+        return false;
     }
 
     @Override
     public Object run(){
         RequestContext requestContext = RequestContext.getCurrentContext();
         HttpServletRequest request = requestContext.getRequest();
-
-        // 从url参数里获取，也可以从cookie、header里获取
-        String token = request.getParameter("token");
-        if (StringUtils.isEmpty(token)) {
-//            requestContext.setSendZuulResponse(false);
-//            requestContext.setResponseStatusCode(HttpStatus.UNAUTHORIZED.value());
+        /**
+         * /order/create 只能买家访问(买家特征:cookie有买家openId)
+         */
+        Cookie cookie = CookieUtil.get(request, "openid");
+        if (cookie == null || StringUtils.isEmpty(cookie.getValue())) {
+            requestContext.setSendZuulResponse(false);
+            requestContext.setResponseStatusCode(HttpStatus.UNAUTHORIZED.value());
         }
         return null;
     }
